@@ -68,6 +68,19 @@ describe("antihtml", function() {
                 +'<body><h1>Hello world</h1></body></html>'
             );
         });
+
+        it("should not modify the input aguments", function() {
+            let document = ['html',
+                ['head', ['title', {'id': 'bar'}, a.Text("Test")]],
+                ['body', ['h1', 'foo', a.Text("Hello world")]],
+            ];
+            let reference = ['html',
+                ['head', ['title', {'id': 'bar'}, a.Text("Test")]],
+                ['body', ['h1', 'foo', a.Text("Hello world")]],
+            ];
+            a.htmlDocument(document);
+            assert.deepEqual(document, reference);
+        });
     });
 
     describe("htmlFragment", function() {

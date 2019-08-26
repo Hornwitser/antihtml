@@ -166,14 +166,16 @@ function _html(tag) {
         throw new Error("tag must be an Array");
     }
 
-    let type = tag.shift();
+    let type = tag[0];
 
     if (typeof type !== 'string') {
         throw new Error(`first element in tag must be a string, not ${type}`);
     }
 
     let element = new _HTMLElement(type);
-    for (let item of tag) {
+    for (let index = 1; index < tag.length; index++) {
+        let item = tag[index];
+
         if (typeof item === 'string') {
             let classAttr = element.attributes.get('class');
             if (classAttr !== undefined) {
