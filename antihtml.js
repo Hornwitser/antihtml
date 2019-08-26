@@ -34,6 +34,14 @@ class _HTMLComment extends Node {
     }
 }
 
+// Represents a fragment of HTML to insert verbatim
+class _HTMLFragment extends Node {
+    constructor(data) {
+        super();
+        this.data = data;
+    }
+}
+
 // Represents an Element
 class _HTMLElement extends Node {
     constructor(name) {
@@ -138,6 +146,9 @@ function _serialize(node) {
 
             s.push('<!--', child.data, '-->');
 
+        } else if (child instanceof _HTMLFragment) {
+            s.push(child.data);
+
         } else if (child instanceof _HTMLDocumentType) {
             s.push('<!DOCTYPE ', child.name, '>');
 
@@ -159,6 +170,12 @@ function Comment(content) {
     let comment = Object.create(Comment.prototype);
     comment.content = content;
     return comment;
+}
+
+function RawFragment(content) {
+    let fragment = Object.create(RawFragment.prototype);
+    fragment.content = content;
+    return fragment;
 }
 
 function _html(tag) {
@@ -191,6 +208,9 @@ function _html(tag) {
 
         } else if (item instanceof Comment) {
             element.nodes.push(new _HTMLComment(item.content));
+
+        } else if (item instanceof RawFragment) {
+            element.nodes.push(new _HTMLFragment(item.content));
 
         } else if (item instanceof Array) {
             try {
@@ -235,6 +255,10 @@ function _root(item) {
         return new _HTMLComment(item.content);
     }
 
+    if (item instanceof RawFragment) {
+        return new _HTMLFragment(item.content);
+    }
+
     if (item instanceof Array) {
         return _html(item);
     }
@@ -257,6 +281,7 @@ function htmlDocument(...tags) {
 module.exports =  {
     Text,
     Comment,
+    RawFragment,
     htmlFragment,
     htmlDocument,
 

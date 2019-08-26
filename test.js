@@ -109,6 +109,14 @@ describe("antihtml", function() {
                 new Error("Unsupported root content type number")
             );
         });
+
+        it("should serialise html fragments verbatim", function() {
+            let string = ">invalid&html<"
+            assert.equal(
+                a.htmlDocument(a.RawFragment(">invalid&html<")),
+                "<!DOCTYPE html>>invalid&html<"
+            );
+        });
     });
 
     describe("htmlFragment", function() {
@@ -232,6 +240,14 @@ describe("antihtml", function() {
 
         it("should serialize frame as void", function() {
             assert.equal(a.htmlFragment(['frame', a.Text("test")]), '<frame>');
+        });
+
+        it("should serialise html fragments verbatim", function() {
+            let string = ">invalid&html<"
+            assert.equal(
+                a.htmlFragment(['a', a.RawFragment(">invalid&html<")]),
+                "<a>>invalid&html<</a>"
+            );
         });
 
         it("should work with text nodes", function() {

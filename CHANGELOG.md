@@ -11,3 +11,4 @@ v0.2.0
 - Added support for specifying Comment and Text nodes at the top level
   to htmlDocument and htmlFragment.
 - Added support for specifying multiple top level tags to htmlFragment.
+- Added support for inserting raw fragments of HTML
