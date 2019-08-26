@@ -88,6 +88,27 @@ describe("antihtml", function() {
             a.htmlDocument(document);
             assert.deepEqual(document, reference);
         });
+
+        it("should work with text nodes", function() {
+            assert.equal(
+                a.htmlDocument(a.Text("Test")),
+                '<!DOCTYPE html>Test'
+            );
+        });
+
+        it("should work with comment nodes", function() {
+            assert.equal(
+                a.htmlDocument(a.Comment("Test")),
+                '<!DOCTYPE html><!--Test-->'
+            );
+        });
+
+        it("should throw an error with invalid content", function() {
+            assert.throws(
+                () => a.htmlDocument(0),
+                new Error("Unsupported root content type number")
+            );
+        });
     });
 
     describe("htmlFragment", function() {
@@ -211,6 +232,21 @@ describe("antihtml", function() {
 
         it("should serialize frame as void", function() {
             assert.equal(a.htmlFragment(['frame', a.Text("test")]), '<frame>');
+        });
+
+        it("should work with text nodes", function() {
+            assert.equal(a.htmlFragment(a.Text("Test")), 'Test');
+        });
+
+        it("should work with comment nodes", function() {
+            assert.equal(a.htmlFragment(a.Comment("Test")), '<!--Test-->');
+        });
+
+        it("should allow multiple nodes", function() {
+            assert.equal(
+                a.htmlFragment(a.Comment("Test"), a.Text("spam"), ['a']),
+                '<!--Test-->spam<a></a>'
+            );
         });
     });
 });

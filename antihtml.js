@@ -226,15 +226,31 @@ function _html(tag) {
     return element;
 }
 
-function htmlFragment(tag) {
+function _root(item) {
+    if (item instanceof Text) {
+        return new _HTMLText(item.content);
+    }
+
+    if (item instanceof Comment) {
+        return new _HTMLComment(item.content);
+    }
+
+    if (item instanceof Array) {
+        return _html(item);
+    }
+
+    throw new Error("Unsupported root content type "+typeof item);
+}
+
+function htmlFragment(...tags) {
     let root = new _HTMLRoot();
-    root.nodes = [_html(tag)];
+    root.nodes = [...tags.map(_root)];
     return _serialize(root);
 }
 
 function htmlDocument(...tags) {
     let root = new _HTMLRoot();
-    root.nodes = [new _HTMLDocumentType('html'), ...tags.map(_html)];
+    root.nodes = [new _HTMLDocumentType('html'), ...tags.map(_root)];
     return _serialize(root);
 }
 
