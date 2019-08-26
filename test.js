@@ -9,7 +9,8 @@ describe("antihtml", function() {
         });
 
         it("should throw when first element is not a string", function() {
-            let error = new Error("first element in tag must be a string");
+            let error =
+                new Error("first element in tag must be a string, not 0");
             assert.throws(() => a._html([0]), error);
         });
 

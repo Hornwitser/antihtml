@@ -169,7 +169,7 @@ function _html(tag) {
     let type = tag.shift();
 
     if (typeof type !== 'string') {
-        throw new Error("first element in tag must be a string");
+        throw new Error(`first element in tag must be a string, not ${type}`);
     }
 
     let element = new _HTMLElement(type);
