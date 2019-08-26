@@ -193,7 +193,18 @@ function _html(tag) {
             element.nodes.push(new _HTMLComment(item.content));
 
         } else if (item instanceof Array) {
-            element.nodes.push(_html(item));
+            try {
+                element.nodes.push(_html(item));
+
+            } catch (err) {
+                let attrs = "";
+                for (let [name, value] of element.attributes) {
+                    attrs += ` ${name}="${value}"`;
+                }
+
+                err.message += `\n  in ${element.name}${attrs}:${index}`;
+                throw err;
+            }
 
         } else if (item === null) {
             // ignore nulls for ease of conditinal objects

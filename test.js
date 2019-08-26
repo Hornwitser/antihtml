@@ -22,6 +22,13 @@ describe("antihtml", function() {
         it("should ignore nulls", function() {
             assert(a._html(['a', null, null, null]).nodes.length === 0);
         });
+
+        it("should give location information on error", function() {
+            let error = new Error(
+                "Unsupported content type number\n  in a id=\"a\":2"
+            );
+            assert.throws(() => a._html(['a', {'id': 'a'}, ['b', 0]]), error);
+        });
     });
 
     describe("_serialize", function() {
