@@ -5,7 +5,7 @@ The simple stupid data structure oriented HTML serializer.
 ## Simple exaple
 
 ```js
-const a = require('antihtml');
+import * as a from 'antihtml';
 
 let document = a.htmlDocument(['html',
     ['head',

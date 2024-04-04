@@ -86,7 +86,7 @@ function _serializesAsVoid(node) {
 	].includes(node.name);
 }
 
-function _serialize(node) {
+export function _serialize(node) {
 	// Note: see https://html.spec.whatwg.org/#serialising-html-fragments
 	//       for the reference algorithm for serializing HTML.  For
 	//       simplicity some features are left out here.
@@ -160,25 +160,25 @@ function _serialize(node) {
 	return s.join('');
 }
 
-function Text(content) {
+export function Text(content) {
 	let text = Object.create(Text.prototype);
 	text.content = content;
 	return text;
 }
 
-function Comment(content) {
+export function Comment(content) {
 	let comment = Object.create(Comment.prototype);
 	comment.content = content;
 	return comment;
 }
 
-function RawFragment(content) {
+export function RawFragment(content) {
 	let fragment = Object.create(RawFragment.prototype);
 	fragment.content = content;
 	return fragment;
 }
 
-function _html(tag) {
+export function _html(tag) {
 	if (!(tag instanceof Array)) {
 		throw new Error("tag must be an Array");
 	}
@@ -266,26 +266,14 @@ function _root(item) {
 	throw new Error("Unsupported root content type "+typeof item);
 }
 
-function htmlFragment(...tags) {
+export function htmlFragment(...tags) {
 	let root = new _HTMLRoot();
 	root.nodes = [...tags.map(_root)];
 	return _serialize(root);
 }
 
-function htmlDocument(...tags) {
+export function htmlDocument(...tags) {
 	let root = new _HTMLRoot();
 	root.nodes = [new _HTMLDocumentType('html'), ...tags.map(_root)];
 	return _serialize(root);
 }
-
-module.exports =  {
-	Text,
-	Comment,
-	RawFragment,
-	htmlFragment,
-	htmlDocument,
-
-	// For testing only
-	_html,
-	_serialize,
-};

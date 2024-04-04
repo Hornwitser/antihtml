@@ -2,9 +2,10 @@
 	"name": "antihtml",
 	"version": "0.2.0-dev",
 	"description": "Simple structured HTML serializer",
+	"type": "module",
 	"main": "antihtml.js",
 	"scripts": {
-		"test": "nyc mocha"
+		"test": "c8 mocha"
 	},
 	"repository": {
 		"type": "git",
@@ -21,7 +22,7 @@
 	},
 	"homepage": "https://github.com/Hornwitser/antihtml#readme",
 	"devDependencies": {
-		"mocha": "^6.2.0",
-		"nyc": "^14.1.1"
+		"c8": "^9.1.0",
+		"mocha": "^10.4.0"
 	}
 }

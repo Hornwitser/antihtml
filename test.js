@@ -1,5 +1,5 @@
-const assert = require('assert').strict;
-const a = require('./antihtml');
+import { strict as assert } from 'node:assert';
+import * as a from './antihtml.js';
 
 describe("antihtml", function() {
 	describe("_html", function() {
