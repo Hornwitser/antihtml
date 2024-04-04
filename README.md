@@ -1,10 +1,8 @@
-AntiHTML
-========
+# AntiHTML
 
 The simple stupid data structure oriented HTML serializer.
 
-Simple exaple
--------------
+## Simple exaple
 
 ```js
 const a = require('antihtml');
@@ -21,9 +19,7 @@ let document = a.htmlDocument(['html',
 ]);
 ```
 
-Produces a string containing an html document roghly equivalent to the
-following, with the exception of there being no newlines or extra
-whitespace:
+Produces a string containing an html document roghly equivalent to the following, with the exception of there being no newlines or extra whitespace:
 
 ```html
 <!DOCTYPE html>
