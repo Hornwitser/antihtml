@@ -11,3 +11,4 @@
 - Migrated to ES Modules.
 - Refactored the library to use Element instances instead of arrays to represent elements.
 - Added newline after emitted \<!DOCTYPE html> declaration
+- Added `prettify` function which inserts newlines and indents to prettify the markup.

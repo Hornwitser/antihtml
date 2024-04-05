@@ -270,4 +270,77 @@ describe("antihtml", function() {
 			);
 		});
 	});
+
+	describe("prettify", function() {
+		it("should indent a simple html document", function() {
+			assert.equal(
+				a.htmlDocument(a.prettify(a.el('title', "Test"))),
+				'<!DOCTYPE html>\n<title>Test</title>\n'
+			);
+		});
+
+		it("should indent a complex html document", function() {
+			assert.equal(
+				a.htmlDocument(
+					a.prettify(
+						a.el('html',
+							a.el('head', a.el('title', "Test")),
+							a.el('body', a.el('h1', "Hello world")),
+						)
+					)
+				),
+				'<!DOCTYPE html>\n'+
+				'<html>\n'+
+				'\t<head>\n'+
+				'\t\t<title>Test</title>\n'+
+				'\t</head>\n'+
+				'\t<body>\n'+
+				'\t\t<h1>Hello world</h1>\n'+
+				'\t</body>\n'+
+				'</html>\n'
+			);
+		});
+
+		it("should leave nodes with text alone", function() {
+			assert.equal(
+				a.htmlFragment(a.prettify(a.el('title', "Test"))),
+				'<title>Test</title>\n'
+			);
+		});
+
+		it("should indent text in comments", function() {
+			assert.equal(
+				a.htmlFragment(a.prettify(a.comment("multi\nline"), undefined, 1)),
+				'\t<!--multi\n'+
+				'\tline-->\n'
+			);
+		});
+
+		it("should indent text in text nodes", function() {
+			assert.equal(
+				a.htmlFragment(a.prettify(a.tx("multi\nline"), undefined, 1)),
+				'\tmulti\n'+
+				'\tline\n'
+			);
+		});
+
+		it("should not indent raw fragments", function() {
+			assert.equal(
+				a.htmlFragment(a.prettify(a.unsafeHTML('multi\nline', undefined, 1))),
+				'multi\nline\n'
+			);
+		});
+
+		it("should inline empty nodes", function() {
+			assert.equal(
+				a.htmlFragment(a.prettify(a.el('table', a.el('tr', a.el('td'), a.el('td', "Data"))))),
+				'<table>\n'+
+				'\t<tr>\n'+
+				'\t\t<td></td>\n'+
+				'\t\t<td>Data</td>\n'+
+				'\t</tr>\n'+
+				'</table>\n'
+			);
+		});
+	});
 });

@@ -224,6 +224,57 @@ function _indentText(text, indent, level) {
 	return text.replace(/\n(?!\n)/g, "\n" + indent.repeat(level))
 }
 
+function _prettifyInline(element) {
+	if (element.childNodes.length === 0) {
+		return true;
+	}
+	for (const node of element.childNodes) {
+		if (node instanceof Text) {
+			return true;
+		}
+	}
+	return false;
+}
+
+function _prettify(nodes, indent, level) {
+	const output = [];
+	for (const node of nodes) {
+		output.push(new Text(indent.repeat(level)));
+		if (node instanceof Element) {
+			if (!_prettifyInline(node)) {
+				const prettyElement = new Element(node.name);
+				prettyElement.attributes = node.attributes;
+				prettyElement.childNodes = [
+					new Text("\n"),
+					...prettify(node.childNodes, indent, level + 1),
+					new Text(indent.repeat(level)),
+				];
+				output.push(prettyElement);
+			} else {
+				output.push(node);
+			}
+		} else if (node instanceof Text) {
+			output.push(new Text(_indentText(node.data, indent, level)));
+		} else if (node instanceof Comment) {
+			output.push(new Comment(_indentText(node.data, indent, level)));
+		} else {
+			output.push(node);
+		}
+		output.push(new Text("\n"));
+	}
+	return output;
+}
+
+export function prettify(nodes, indent = '\t', level = 0) {
+	if (nodes instanceof Node) {
+		return _prettify([nodes], indent, level);
+	}
+
+	const root = new Element('root');
+	_appendChildren(root, nodes);
+	return _prettify(root.childNodes, indent, level);
+}
+
 export function htmlFragment(...children) {
 	let root = new Element('root');
 	_appendChildren(root, children);
