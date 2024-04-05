@@ -8,7 +8,7 @@ The simple stupid data structure oriented HTML serializer.
 import * as a from 'antihtml';
 
 const title = "Hello world";
-const document = a.htmlDocument(a.el('html',
+const document = a.el('html',
     a.el('head',
         a.el('meta', {'charset': 'utf-8'}),
         a.el('title', title),
@@ -17,10 +17,11 @@ const document = a.htmlDocument(a.el('html',
         a.el('h1', title),
         a.el('p', "This is a sample html document"),
     ),
-));
+);
+const html = a.htmlDocument(a.prettify(document, "    "));
 ```
 
-Produces a string containing an html document roghly equivalent to the following, with the exception of there being no newlines or extra whitespace:
+The produced `html` string is the following:
 
 ```html
 <!DOCTYPE html>
