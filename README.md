@@ -7,16 +7,17 @@ The simple stupid data structure oriented HTML serializer.
 ```js
 import * as a from 'antihtml';
 
-let document = a.htmlDocument(['html',
-    ['head',
-        ['meta', {'charset': 'utf-8'}],
-        ['title', a.Text("Hello world")],
-    ],
-    ['body',
-        ['h1', a.Text("Hello world")],
-        ['p', a.Text("This is a sample html document")],
-    ]
-]);
+const title = "Hello world";
+const document = a.htmlDocument(a.el('html',
+    a.el('head',
+        a.el('meta', {'charset': 'utf-8'}),
+        a.el('title', title),
+    ),
+    a.el('body',
+        a.el('h1', title),
+        a.el('p', "This is a sample html document"),
+    ),
+));
 ```
 
 Produces a string containing an html document roghly equivalent to the following, with the exception of there being no newlines or extra whitespace:

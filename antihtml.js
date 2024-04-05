@@ -1,17 +1,12 @@
 "use strict";
 
-class Node { }
-
-// Imaginary node for the serializer
-class _HTMLRoot extends Node {
-	constructor() {
-		super();
-		this.nodes = [];
-	}
+class Node {
+	childNodes = [];
 }
 
 // Represents a DOCTYPE
-class _HTMLDocumentType extends Node {
+class DocumentType extends Node {
+	name;
 	constructor(name) {
 		super();
 		this.name = name;
@@ -19,7 +14,8 @@ class _HTMLDocumentType extends Node {
 }
 
 // Represents a Text node
-class _HTMLText extends Node {
+class Text extends Node {
+	data;
 	constructor(data) {
 		super();
 		this.data = data;
@@ -27,7 +23,8 @@ class _HTMLText extends Node {
 }
 
 // Represents a comment
-class _HTMLComment extends Node {
+class Comment extends Node {
+	data;
 	constructor(data) {
 		super();
 		this.data = data;
@@ -36,6 +33,7 @@ class _HTMLComment extends Node {
 
 // Represents a fragment of HTML to insert verbatim
 class _HTMLFragment extends Node {
+	data;
 	constructor(data) {
 		super();
 		this.data = data;
@@ -43,12 +41,13 @@ class _HTMLFragment extends Node {
 }
 
 // Represents an Element
-class _HTMLElement extends Node {
+class Element extends Node {
+	attributes;
+	name;
 	constructor(name) {
 		super();
 		this.attributes = new Map();
 		this.name = name;
-		this.nodes = [];
 	}
 }
 
@@ -91,18 +90,18 @@ export function _serialize(node) {
 	//       for the reference algorithm for serializing HTML.  For
 	//       simplicity some features are left out here.
 
-	if (node instanceof _HTMLElement && _serializesAsVoid(node)) {
+	if (node instanceof Element && _serializesAsVoid(node)) {
 		return '';
 	}
 
-	if (node instanceof _HTMLDocumentType || node instanceof _HTMLText) {
+	if (node instanceof DocumentType || node instanceof Text) {
 		return '';
 	}
 
 	let s = [];
 
-	for (let child of node.nodes) {
-		if (child instanceof _HTMLElement) {
+	for (let child of node.childNodes) {
+		if (child instanceof Element) {
 			let attrs = child.attributes;
 			s.push('<', child.name, _serializeAttributes(attrs), '>');
 
@@ -113,8 +112,8 @@ export function _serialize(node) {
 			s.push(_serialize(child));
 			s.push('</', child.name, '>');
 
-		} else if (child instanceof _HTMLText) {
-			if (node instanceof _HTMLElement && [
+		} else if (child instanceof Text) {
+			if (node instanceof Element && [
 				'style', 'script', 'xmp', 'iframe', 'noembed',
 				'noframes', 'plaintext',
 			].includes(node.name)) {
@@ -126,11 +125,11 @@ export function _serialize(node) {
 				}
 
 				if (child.data.indexOf('<' + node.name) !== -1) {
-					throw new Error("opening tag in text preserving element");
+					throw new Error("Opening tag in text preserving element");
 				}
 
 				if (child.data.indexOf('</' + node.name) !== -1) {
-					throw new Error("closing tag in text preserving element");
+					throw new Error("Closing tag in text preserving element");
 				}
 
 				s.push(child.data);
@@ -139,7 +138,7 @@ export function _serialize(node) {
 				s.push(_escapeNode(child.data));
 			}
 
-		} else if (child instanceof _HTMLComment) {
+		} else if (child instanceof Comment) {
 			if (child.data.indexOf('-->') !== -1) {
 				throw Error("Comment containing -->");
 			}
@@ -149,85 +148,48 @@ export function _serialize(node) {
 		} else if (child instanceof _HTMLFragment) {
 			s.push(child.data);
 
-		} else if (child instanceof _HTMLDocumentType) {
+		} else if (child instanceof DocumentType) {
 			s.push('<!DOCTYPE ', child.name, '>');
 
 		} else {
-			throw Error("unsupported node "+child);
+			throw Error("Unsupported node "+child);
 		}
 	}
 
 	return s.join('');
 }
 
-export function Text(content) {
-	let text = Object.create(Text.prototype);
-	text.content = content;
-	return text;
+export function tx(data) {
+	return new Text(data);
 }
 
-export function Comment(content) {
-	let comment = Object.create(Comment.prototype);
-	comment.content = content;
-	return comment;
+export function comment(data) {
+	return new Comment(data);
 }
 
-export function RawFragment(content) {
-	let fragment = Object.create(RawFragment.prototype);
-	fragment.content = content;
-	return fragment;
+export function unsafeHTML(html) {
+	return new _HTMLFragment(html);
 }
 
-export function _html(tag) {
-	if (!(tag instanceof Array)) {
-		throw new Error("tag must be an Array");
-	}
-
-	let type = tag[0];
-
-	if (typeof type !== 'string') {
-		throw new Error(`first element in tag must be a string, not ${type}`);
-	}
-
-	let element = new _HTMLElement(type);
-	for (let index = 1; index < tag.length; index++) {
-		let item = tag[index];
-
+function _appendChildren(element, children) {
+	for (const item of children) {
 		if (typeof item === 'string') {
-			let classAttr = element.attributes.get('class');
-			if (classAttr !== undefined) {
-				classAttr += " "+item;
-			} else {
-				classAttr = item;
-			}
+			element.childNodes.push(new Text(item));
 
-			element.attributes.set('class', classAttr);
+		} else if (typeof item !== 'object') {
+			throw new TypeError(
+				"Expected string or object as child to " +
+				`<${element.name}> but got ${typeof item}`
+			);
 
-		} else if (item instanceof Text) {
-			element.nodes.push(new _HTMLText(item.content));
-
-		} else if (item instanceof Comment) {
-			element.nodes.push(new _HTMLComment(item.content));
-
-		} else if (item instanceof RawFragment) {
-			element.nodes.push(new _HTMLFragment(item.content));
-
-		} else if (item instanceof Array) {
-			try {
-				element.nodes.push(_html(item));
-
-			} catch (err) {
-				let attrs = "";
-				for (let [name, value] of element.attributes) {
-					attrs += ` ${name}="${value}"`;
-				}
-
-				err.message += `\n  in ${element.name}${attrs}:${index}`;
-				throw err;
-			}
+		} else if (item instanceof Node) {
+			element.childNodes.push(item);
 
 		} else if (item === null) {
 			// ignore nulls for ease of conditinal objects
+
+		} else if (Symbol.iterator in item) {
+			_appendChildren(element, item);
 
 		} else {
 			let prototype = Object.getPrototypeOf(item);
@@ -238,42 +200,39 @@ export function _html(tag) {
 				}
 
 			} else {
-				throw new Error("Unsupported content type "+typeof item);
+				const name = prototype?.constructor?.name;
+				throw new TypeError(
+					`Unsupported object type as child to <${element.name}>` +
+					(typeof name === 'string' ? ": " + name : "")
+				);
 			}
 		}
 	}
+}
 
+export function el(type, ...children) {
+	if (typeof type !== 'string') {
+		throw new Error(`Element type must be a string, not ${type}`);
+	}
+
+	let element = new Element(type);
+	_appendChildren(element, children);
 	return element;
 }
 
-function _root(item) {
-	if (item instanceof Text) {
-		return new _HTMLText(item.content);
-	}
-
-	if (item instanceof Comment) {
-		return new _HTMLComment(item.content);
-	}
-
-	if (item instanceof RawFragment) {
-		return new _HTMLFragment(item.content);
-	}
-
-	if (item instanceof Array) {
-		return _html(item);
-	}
-
-	throw new Error("Unsupported root content type "+typeof item);
+function _indentText(text, indent, level) {
+	return text.replace(/\n(?!\n)/g, "\n" + indent.repeat(level))
 }
 
-export function htmlFragment(...tags) {
-	let root = new _HTMLRoot();
-	root.nodes = [...tags.map(_root)];
+export function htmlFragment(...children) {
+	let root = new Element('root');
+	_appendChildren(root, children);
 	return _serialize(root);
 }
 
-export function htmlDocument(...tags) {
-	let root = new _HTMLRoot();
-	root.nodes = [new _HTMLDocumentType('html'), ...tags.map(_root)];
+export function htmlDocument(...children) {
+	let root = new Element('root');
+	root.childNodes.push(new DocumentType('html'));
+	_appendChildren(root, children);
 	return _serialize(root);
 }

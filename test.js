@@ -2,52 +2,57 @@ import { strict as assert } from 'node:assert';
 import * as a from './antihtml.js';
 
 describe("antihtml", function() {
-	describe("_html", function() {
-		it("should throw when passed a non-Array", function() {
-			let error = new Error("tag must be an Array");
-			assert.throws(() => a._html(0), error);
-		});
-
-		it("should throw when first element is not a string", function() {
+	describe("el", function() {
+		it("should throw when type is not a string", function() {
 			let error =
-				new Error("first element in tag must be a string, not 0");
-			assert.throws(() => a._html([0]), error);
+				new Error("Element type must be a string, not 0");
+			assert.throws(() => a.el(0), error);
 		});
 
-		it("should throw when passed an unsupported content type", function() {
-			let error = new Error("Unsupported content type number");
-			assert.throws(() => a._html(['a', 0]), error);
+		it("should throw when passed an unsupported child", function() {
+			let error = new TypeError(
+				"Expected string or object as child to <a> but got number"
+			);
+			assert.throws(() => a.el('a', 0), error);
+
+			error = new TypeError(
+				"Unsupported object type as child to <a>: Number"
+			);
+			assert.throws(() => a.el('a', new Number(0)), error);
+
+			const custom = { constructor: undefined, };
+			error = new TypeError(
+				"Unsupported object type as child to <a>"
+			);
+			assert.throws(() => a.el('a', Object.create(custom)), error);
 		});
 
 		it("should ignore nulls", function() {
-			assert(a._html(['a', null, null, null]).nodes.length === 0);
+			assert(a.el('a', null, null, null).childNodes.length === 0);
 		});
 
-		it("should give location information on error", function() {
-			let error = new Error(
-				"Unsupported content type number\n  in a id=\"a\":2"
-			);
-			assert.throws(() => a._html(['a', {'id': 'a'}, ['b', 0]]), error);
+		it("should recursively handle arrays", function() {
+			assert(a.el('a', ["foo", a.el('br'), ["bar"]]).childNodes.length === 3);
 		});
 	});
 
 	describe("_serialize", function() {
 		it("should throw if passed a node with an unknown child", function() {
-			let badNode = a._html(['a']);
-			badNode.nodes.push(0);
+			let badNode = a.el('a');
+			badNode.childNodes.push(0);
 			assert.throws(
-				() => a._serialize(badNode), new Error("unsupported node 0")
+				() => a._serialize(badNode), new Error("Unsupported node 0")
 			);
 		});
 
 		it("should return an empty string for void nodes", function() {
-			let element = new a._html(['br', a.Text("test")]);
+			let element = new a.el('br', "test");
 			assert.equal(a._serialize(element), '');
 		});
 
 		it("should return an empty string for text nodes", function() {
-			let element = new a._html(['br', a.Text("test")]);
-			assert.equal(a._serialize(element.nodes[0]), '');
+			let element = new a.el('br', "test");
+			assert.equal(a._serialize(element.childNodes[0]), '');
 		});
 	});
 
@@ -56,20 +61,20 @@ describe("antihtml", function() {
 			assert.equal(a.htmlDocument(), '<!DOCTYPE html>');
 		});
 
-		it("should work with a simple html document ", function() {
+		it("should work with a simple html document", function() {
 			assert.equal(
-				a.htmlDocument(['title', a.Text("Test")]),
+				a.htmlDocument(a.el('title', "Test")),
 				'<!DOCTYPE html><title>Test</title>'
 			);
 		});
 
-		it("should work with a complex html document ", function() {
+		it("should work with a complex html document", function() {
 			assert.equal(
 				a.htmlDocument(
-					['html',
-						['head', ['title', a.Text("Test")]],
-						['body', ['h1', a.Text("Hello world")]],
-					]
+					a.el('html',
+						a.el('head', a.el('title', "Test")),
+						a.el('body', a.el('h1', "Hello world")),
+					)
 				),
 				'<!DOCTYPE html><html><head><title>Test</title></head>'
 				+'<body><h1>Hello world</h1></body></html>'
@@ -77,28 +82,28 @@ describe("antihtml", function() {
 		});
 
 		it("should not modify the input aguments", function() {
-			let document = ['html',
-				['head', ['title', {'id': 'bar'}, a.Text("Test")]],
-				['body', ['h1', 'foo', a.Text("Hello world")]],
-			];
-			let reference = ['html',
-				['head', ['title', {'id': 'bar'}, a.Text("Test")]],
-				['body', ['h1', 'foo', a.Text("Hello world")]],
-			];
+			let document = a.el('html',
+				a.el('head', a.el('title', {'id': 'bar'}, "Test")),
+				a.el('body', a.el('h1', {'class': 'foo'}, "Hello world")),
+			);
+			let reference = a.el('html',
+				a.el('head', a.el('title', {'id': 'bar'}, "Test")),
+				a.el('body', a.el('h1', {'class': 'foo'}, "Hello world")),
+			);
 			a.htmlDocument(document);
 			assert.deepEqual(document, reference);
 		});
 
 		it("should work with text nodes", function() {
 			assert.equal(
-				a.htmlDocument(a.Text("Test")),
+				a.htmlDocument(a.tx("Test")),
 				'<!DOCTYPE html>Test'
 			);
 		});
 
 		it("should work with comment nodes", function() {
 			assert.equal(
-				a.htmlDocument(a.Comment("Test")),
+				a.htmlDocument(a.comment("Test")),
 				'<!DOCTYPE html><!--Test-->'
 			);
 		});
@@ -106,27 +111,28 @@ describe("antihtml", function() {
 		it("should throw an error with invalid content", function() {
 			assert.throws(
 				() => a.htmlDocument(0),
-				new Error("Unsupported root content type number")
+				new TypeError(
+					"Expected string or object as child to <root> but got number"
+				),
 			);
 		});
 
 		it("should serialise html fragments verbatim", function() {
-			let string = ">invalid&html<"
 			assert.equal(
-				a.htmlDocument(a.RawFragment(">invalid&html<")),
-				"<!DOCTYPE html>>invalid&html<"
+				a.htmlDocument(a.unsafeHTML('>invalid&html<')),
+				'<!DOCTYPE html>>invalid&html<'
 			);
 		});
 	});
 
 	describe("htmlFragment", function() {
 		it("should serialize a simple <a> element", function() {
-			assert.equal(a.htmlFragment(['a']), '<a></a>');
+			assert.equal(a.htmlFragment(a.el('a')), '<a></a>');
 		});
 
 		it("should serialize simple attributes", function() {
 			assert.equal(a.htmlFragment(
-				['a', {'id': 'test'}]),
+				a.el('a', {'id': 'test'})),
 				'<a id="test"></a>'
 			);
 		});
@@ -141,7 +147,7 @@ describe("antihtml", function() {
 		for (let [name, character, result] of attribChars) {
 			it(`should escape ${name} in attributes`, function() {
 				assert.equal(
-					a.htmlFragment(['a', {'id': character}]),
+					a.htmlFragment(a.el('a', {'id': character})),
 					`<a id="${result}"></a>`
 				);
 			});
@@ -158,109 +164,108 @@ describe("antihtml", function() {
 		for (let [name, character, result] of nodeChars) {
 			it(`should escape ${name} in node content`, function() {
 				assert.equal(
-					a.htmlFragment(['a', a.Text(character)]),
+					a.htmlFragment(a.el('a', character)),
 					`<a>${result}</a>`
 				);
 			});
 		}
 
-		it("should serialise a class", function() {
+		it("should serialise string as text", function() {
 			assert.equal(
-				a.htmlFragment(['a', 'foo']),
-				'<a class="foo"></a>'
+				a.htmlFragment(a.el('a', "foo")),
+				'<a>foo</a>'
 			);
 		});
 
-		it("should serialise multiple classes", function() {
+		it("should serialise Text nodes as text", function() {
 			assert.equal(
-				a.htmlFragment(['a', 'foo', 'bar']),
-				'<a class="foo bar"></a>'
+				a.htmlFragment(a.el('a', a.tx("foo"))),
+				'<a>foo</a>'
 			);
 		});
 
-		it("should override class if set as attribute", function() {
+		it("should serialise multiple strings as text", function() {
 			assert.equal(
-				a.htmlFragment(['a', 'foo', {'class': 'bar'}]),
-				'<a class="bar"></a>'
+				a.htmlFragment(a.el('a', "foo", "bar")),
+				'<a>foobar</a>'
 			);
 		});
 
 		it("should serialize comments", function() {
 			assert.equal(
-				a.htmlFragment(['a', a.Comment("test")]),
+				a.htmlFragment(a.el('a', a.comment("test"))),
 				'<a><!--test--></a>'
 			);
 		});
 
 		it("should throw on comments containing -->", function() {
 			assert.throws(
-				() => a.htmlFragment(['a', a.Comment("-->")]),
+				() => a.htmlFragment(a.el('a', a.comment("-->"))),
 				new Error("Comment containing -->")
 			);
 		});
 
-		it("should work fine on element text <!--", function() {
+		it("should escape element text <!--", function() {
 			assert.equal(
-				a.htmlFragment(['a', a.Text("<!--")]),
+				a.htmlFragment(a.el('a', "<!--")),
 				'<a>&lt;!--</a>'
 			);
 		});
 
 		it("should work on preserving element", function() {
 			assert.equal(
-				a.htmlFragment(['script', a.Text("test")]),
+				a.htmlFragment(a.el('script', "test")),
 				'<script>test</script>'
 			);
 		});
 
-		it("should throw on preserving element text <!--", function() {
+		it("should throw on preserving element containing <!--", function() {
 			assert.throws(
-				() => a.htmlFragment(['script', a.Text("<!--")]),
+				() => a.htmlFragment(a.el('script', "<!--")),
 				new Error("<!-- in text preserving element")
 			);
 		});
 
-		it("should throw on preserving element text <tag", function() {
+		it("should throw on preserving element containing <tag", function() {
 			assert.throws(
-				() => a.htmlFragment(['script', a.Text("<script")]),
-				new Error("opening tag in text preserving element")
+				() => a.htmlFragment(a.el('script', "<script")),
+				new Error("Opening tag in text preserving element")
 			);
 		});
 
-		it("should throw on preserving element text </tag", function() {
+		it("should throw on preserving element containing </tag", function() {
 			assert.throws(
-				() => a.htmlFragment(['script', a.Text("</script")]),
-				new Error("closing tag in text preserving element")
+				() => a.htmlFragment(a.el('script', "</script")),
+				new Error("Closing tag in text preserving element")
 			);
 		});
 
 		it("should serialize br as void", function() {
-			assert.equal(a.htmlFragment(['br', a.Text("test")]), '<br>');
+			assert.equal(a.htmlFragment(a.el('br', "test")), '<br>');
 		});
 
 		it("should serialize frame as void", function() {
-			assert.equal(a.htmlFragment(['frame', a.Text("test")]), '<frame>');
+			assert.equal(a.htmlFragment(a.el('frame', "test")), '<frame>');
 		});
 
 		it("should serialise html fragments verbatim", function() {
-			let string = ">invalid&html<"
 			assert.equal(
-				a.htmlFragment(['a', a.RawFragment(">invalid&html<")]),
+				a.htmlFragment(a.el('a', a.unsafeHTML('>invalid&html<'))),
 				"<a>>invalid&html<</a>"
 			);
 		});
 
-		it("should work with text nodes", function() {
-			assert.equal(a.htmlFragment(a.Text("Test")), 'Test');
+		it("should serialise text nodes", function() {
+			assert.equal(a.htmlFragment(a.tx("Test")), 'Test');
 		});
 
-		it("should work with comment nodes", function() {
-			assert.equal(a.htmlFragment(a.Comment("Test")), '<!--Test-->');
+		it("should serialise comment nodes", function() {
+			assert.equal(a.htmlFragment(a.comment("Test")), '<!--Test-->');
 		});
 
 		it("should allow multiple nodes", function() {
 			assert.equal(
-				a.htmlFragment(a.Comment("Test"), a.Text("spam"), ['a']),
+				a.htmlFragment(a.comment("Test"), a.tx("spam"), a.el('a')),
 				'<!--Test-->spam<a></a>'
 			);
 		});
