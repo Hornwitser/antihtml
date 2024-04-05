@@ -5,20 +5,20 @@ The simple stupid data structure oriented HTML serializer.
 ## Simple exaple
 
 ```js
-import * as a from 'antihtml';
+import { el, htmlDocument, prettify } from 'antihtml';
 
 const title = "Hello world";
-const document = a.el('html',
-    a.el('head',
-        a.el('meta', {'charset': 'utf-8'}),
-        a.el('title', title),
+const document = el('html',
+    el('head',
+        el('meta', {'charset': 'utf-8'}),
+        el('title', title),
     ),
-    a.el('body',
-        a.el('h1', title),
-        a.el('p', "This is a sample html document"),
+    el('body',
+        el('h1', title),
+        el('p', "This is a sample html document"),
     ),
 );
-const html = a.htmlDocument(a.prettify(document, "    "));
+const html = htmlDocument(prettify(document, "    "));
 ```
 
 The produced `html` string is the following:
