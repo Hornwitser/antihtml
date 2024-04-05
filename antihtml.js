@@ -232,7 +232,7 @@ export function htmlFragment(...children) {
 
 export function htmlDocument(...children) {
 	let root = new Element('root');
-	root.childNodes.push(new DocumentType('html'));
+	root.childNodes.push(new DocumentType('html'), new Text("\n"));
 	_appendChildren(root, children);
 	return _serialize(root);
 }

@@ -58,13 +58,13 @@ describe("antihtml", function() {
 
 	describe("htmlDocument", function() {
 		it("should return an empty document with no parameters", function() {
-			assert.equal(a.htmlDocument(), '<!DOCTYPE html>');
+			assert.equal(a.htmlDocument(), '<!DOCTYPE html>\n');
 		});
 
 		it("should work with a simple html document", function() {
 			assert.equal(
 				a.htmlDocument(a.el('title', "Test")),
-				'<!DOCTYPE html><title>Test</title>'
+				'<!DOCTYPE html>\n<title>Test</title>'
 			);
 		});
 
@@ -76,7 +76,7 @@ describe("antihtml", function() {
 						a.el('body', a.el('h1', "Hello world")),
 					)
 				),
-				'<!DOCTYPE html><html><head><title>Test</title></head>'
+				'<!DOCTYPE html>\n<html><head><title>Test</title></head>'
 				+'<body><h1>Hello world</h1></body></html>'
 			);
 		});
@@ -97,14 +97,14 @@ describe("antihtml", function() {
 		it("should work with text nodes", function() {
 			assert.equal(
 				a.htmlDocument(a.tx("Test")),
-				'<!DOCTYPE html>Test'
+				'<!DOCTYPE html>\nTest'
 			);
 		});
 
 		it("should work with comment nodes", function() {
 			assert.equal(
 				a.htmlDocument(a.comment("Test")),
-				'<!DOCTYPE html><!--Test-->'
+				'<!DOCTYPE html>\n<!--Test-->'
 			);
 		});
 
@@ -120,7 +120,7 @@ describe("antihtml", function() {
 		it("should serialise html fragments verbatim", function() {
 			assert.equal(
 				a.htmlDocument(a.unsafeHTML('>invalid&html<')),
-				'<!DOCTYPE html>>invalid&html<'
+				'<!DOCTYPE html>\n>invalid&html<'
 			);
 		});
 	});

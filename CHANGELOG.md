@@ -10,3 +10,4 @@
 - Added support for inserting raw fragments of HTML
 - Migrated to ES Modules.
 - Refactored the library to use Element instances instead of arrays to represent elements.
+- Added newline after emitted \<!DOCTYPE html> declaration
