@@ -1,65 +1,54 @@
 "use strict";
 
 class Node {
-	childNodes = [];
+	childNodes: Node[] = [];
 }
 
 // Represents a DOCTYPE
 class DocumentType extends Node {
-	name;
-	constructor(name) {
+	constructor(public name: string) {
 		super();
-		this.name = name;
 	}
 }
 
 // Represents a Text node
 class Text extends Node {
-	data;
-	constructor(data) {
+	constructor(public data: string) {
 		super();
-		this.data = data;
 	}
 }
 
 // Represents a comment
 class Comment extends Node {
-	data;
-	constructor(data) {
+	constructor(public data: string) {
 		super();
-		this.data = data;
 	}
 }
 
 // Represents a fragment of HTML to insert verbatim
 class _HTMLFragment extends Node {
-	data;
-	constructor(data) {
+	constructor(public data: string) {
 		super();
-		this.data = data;
 	}
 }
 
 // Represents an Element
 class Element extends Node {
-	attributes;
-	name;
-	constructor(name) {
+	attributes = new Map<string, string>();
+	constructor(public name: string) {
 		super();
-		this.attributes = new Map();
-		this.name = name;
 	}
 }
 
 
-function _escapeAttribute(value) {
+function _escapeAttribute(value: string) {
 	value = value.replace(/&/g, '&amp;')
 	value = value.replace(/\xA0/g, '&nbsp;') // NO-BREAK SPACE
 	value = value.replace(/"/g, '&quot;')
 	return value
 }
 
-function _escapeNode(value) {
+function _escapeNode(value: string) {
 	value = value.replace(/&/g, '&amp;')
 	value = value.replace(/\xA0/g, '&nbsp;') // NO-BREAK SPACE
 	value = value.replace(/</g, '&lt;')
@@ -67,14 +56,14 @@ function _escapeNode(value) {
 	return value
 }
 
-function _serializeAttributes(attributes) {
+function _serializeAttributes(attributes: Map<string, string>) {
 	return [...attributes.entries()].map(([name, value]) => {
 		return [' ', name, '="', _escapeAttribute(value), '"'].join('')
 	}
 	).join('');
 }
 
-function _serializesAsVoid(node) {
+function _serializesAsVoid(node: Element) {
 	return [
 		// Void elements
 		'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link',
@@ -85,7 +74,7 @@ function _serializesAsVoid(node) {
 	].includes(node.name);
 }
 
-export function _serialize(node) {
+export function _serialize(node: Node): string {
 	// Note: see https://html.spec.whatwg.org/#serialising-html-fragments
 	//       for the reference algorithm for serializing HTML.  For
 	//       simplicity some features are left out here.
@@ -159,19 +148,27 @@ export function _serialize(node) {
 	return s.join('');
 }
 
-export function tx(data) {
+export function tx(data: string) {
 	return new Text(data);
 }
 
-export function comment(data) {
+export function comment(data: string) {
 	return new Comment(data);
 }
 
-export function unsafeHTML(html) {
+export function unsafeHTML(html: string) {
 	return new _HTMLFragment(html);
 }
 
-function _appendChildren(element, children) {
+type ChildShorthand =
+	| Node
+	| Iterable<ChildShorthand>
+	| null
+	| string
+	| Record<string, string>
+;
+
+function _appendChildren(element: Element, children: Iterable<ChildShorthand>) {
 	for (const item of children) {
 		if (typeof item === 'string') {
 			element.childNodes.push(new Text(item));
@@ -210,7 +207,7 @@ function _appendChildren(element, children) {
 	}
 }
 
-export function el(type, ...children) {
+export function el(type: string, ...children: ChildShorthand[]) {
 	if (typeof type !== 'string') {
 		throw new Error(`Element type must be a string, not ${type}`);
 	}
@@ -220,11 +217,11 @@ export function el(type, ...children) {
 	return element;
 }
 
-function _indentText(text, indent, level) {
+function _indentText(text: string, indent: string, level: number) {
 	return text.replace(/\n(?!\n)/g, "\n" + indent.repeat(level))
 }
 
-function _prettifyInline(element) {
+function _prettifyInline(element: Element) {
 	if (element.childNodes.length === 0) {
 		return true;
 	}
@@ -236,7 +233,7 @@ function _prettifyInline(element) {
 	return false;
 }
 
-function _prettify(nodes, indent, level) {
+function _prettify(nodes: Node[], indent: string, level: number) {
 	const output = [];
 	for (const node of nodes) {
 		output.push(new Text(indent.repeat(level)));
@@ -265,7 +262,7 @@ function _prettify(nodes, indent, level) {
 	return output;
 }
 
-export function prettify(nodes, indent = '\t', level = 0) {
+export function prettify(nodes: Node | ChildShorthand[], indent = '\t', level = 0) {
 	if (nodes instanceof Node) {
 		return _prettify([nodes], indent, level);
 	}
@@ -275,13 +272,13 @@ export function prettify(nodes, indent = '\t', level = 0) {
 	return _prettify(root.childNodes, indent, level);
 }
 
-export function htmlFragment(...children) {
+export function htmlFragment(...children: ChildShorthand[]) {
 	let root = new Element('root');
 	_appendChildren(root, children);
 	return _serialize(root);
 }
 
-export function htmlDocument(...children) {
+export function htmlDocument(...children: ChildShorthand[]) {
 	let root = new Element('root');
 	root.childNodes.push(new DocumentType('html'), new Text("\n"));
 	_appendChildren(root, children);

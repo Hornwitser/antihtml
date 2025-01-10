@@ -3,8 +3,9 @@
 	"version": "0.3.0-dev",
 	"description": "Simple structured HTML serializer",
 	"type": "module",
-	"main": "antihtml.js",
+	"main": "dist/antihtml.js",
 	"scripts": {
+		"prepare": "tsc",
 		"test": "c8 mocha"
 	},
 	"repository": {
@@ -23,6 +24,7 @@
 	"homepage": "https://github.com/Hornwitser/antihtml#readme",
 	"devDependencies": {
 		"c8": "^9.1.0",
-		"mocha": "^10.4.0"
+		"mocha": "^10.4.0",
+		"typescript": "^5.7.3"
 	}
 }

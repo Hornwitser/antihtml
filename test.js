@@ -1,5 +1,5 @@
 import { strict as assert } from 'node:assert';
-import * as a from './antihtml.js';
+import * as a from './dist/antihtml.js';
 
 describe("antihtml", function() {
 	describe("el", function() {

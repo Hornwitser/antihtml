@@ -1,6 +1,7 @@
 # Node files
 package-lock.json
 node_modules/
+dist/
 
 # Coverage files
 coverage
