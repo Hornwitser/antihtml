@@ -1,5 +1,5 @@
 {
-    "include": ["antihtml.ts"],
+    "files": ["antihtml.ts", "jsx-runtime.ts"],
     "compilerOptions": {
         "outDir": "./dist",
         "sourceMap": true,

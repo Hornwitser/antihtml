@@ -3,7 +3,11 @@
 	"version": "0.3.0-dev",
 	"description": "Simple structured HTML serializer",
 	"type": "module",
-	"main": "dist/antihtml.js",
+	"exports": {
+		".": "./dist/antihtml.js",
+		"./jsx-runtime": "./dist/jsx-runtime.js",
+		"./jsx-dev-runtime": "./dist/jsx-runtime.js"
+	},
 	"scripts": {
 		"prepare": "tsc",
 		"test": "c8 mocha"

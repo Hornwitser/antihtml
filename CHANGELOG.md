@@ -4,6 +4,7 @@
 
 - Ported project to TypeScript
 - Exported the Node, DocumentType, Text, Comment and Element classes.
+- Added support for jsx.
 
 ## v0.2.0
 

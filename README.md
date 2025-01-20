@@ -36,3 +36,40 @@ The produced `html` string is the following:
     </body>
 </html>
 ```
+
+## JSX support
+
+Using JSX is also supported, for example with JSX the above code could also have been written as:
+
+```jsx
+import { htmlDocument, prettify } from 'antihtml';
+
+function Head(props) {
+    return <head>
+        <meta charset="utf-8" />
+        <title>{props.title}</title>
+    </head>;
+}
+
+const title = "Hello world";
+const document = <html>
+    <Head title={title} />
+    <body>
+        <h1>{title}</h1>,
+        <p>This is a sample html document</p>
+    </body>
+</html>;
+const html = htmlDocument(prettify(document, "    "));
+```
+
+For this to work you need to configure a transpiler to convert the JSX to `_jsx` calls, with the source to import it from set to `"antihtml"`.
+In TypeScript this can be accomplished with a tsconfig.json containing the following options:
+
+```json
+{
+    "compilerOptions": {
+        "jsx": "react-jsx",
+        "jsxImportSource": "antihtml"
+    }
+}
+```
