@@ -3,6 +3,7 @@
 ## v0.3.0
 
 - Ported project to TypeScript
+- Exported the Node, DocumentType, Text, Comment and Element classes.
 
 ## v0.2.0
 

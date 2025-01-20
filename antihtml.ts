@@ -1,25 +1,25 @@
 "use strict";
 
-class Node {
+export class Node {
 	childNodes: Node[] = [];
 }
 
 // Represents a DOCTYPE
-class DocumentType extends Node {
+export class DocumentType extends Node {
 	constructor(public name: string) {
 		super();
 	}
 }
 
 // Represents a Text node
-class Text extends Node {
+export class Text extends Node {
 	constructor(public data: string) {
 		super();
 	}
 }
 
 // Represents a comment
-class Comment extends Node {
+export class Comment extends Node {
 	constructor(public data: string) {
 		super();
 	}
@@ -33,7 +33,7 @@ class _HTMLFragment extends Node {
 }
 
 // Represents an Element
-class Element extends Node {
+export class Element extends Node {
 	attributes = new Map<string, string>();
 	constructor(public name: string) {
 		super();
