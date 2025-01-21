@@ -1,6 +1,6 @@
 {
 	"name": "antihtml",
-	"version": "0.3.0-dev",
+	"version": "0.3.0",
 	"description": "Simple structured HTML serializer",
 	"type": "module",
 	"exports": {
